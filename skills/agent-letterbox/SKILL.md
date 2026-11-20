@@ -1,14 +1,14 @@
 ---
 name: agent-letterbox
 description: Durable cross-agent coordination for live Rex teams. Use when receiving an Agent Letterbox doorbell, checking a Letterbox inbox, replying to another agent, registering a live Rex block, or handling agent-to-agent work handoffs.
-version: 0.7.3
+version: 1
 author: Agent Letterbox
 license: MIT
 ---
 
 # Agent Letterbox
 
-**Helper version:** see repository `VERSION`. This skill covers the 0.7 query, supersession and notes workflow.
+**Helper version:** see repository `VERSION`. This skill covers the query, supersession and notes workflow.
 
 ## Core rule
 

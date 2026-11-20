@@ -1,6 +1,6 @@
 # Contributing to Agent Letterbox for Rex
 
-## Scope (v0.1 local)
+## Scope
 
 **Supported**
 

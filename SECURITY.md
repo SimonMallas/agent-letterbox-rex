@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Until a public tag is cut, treat **main / pre-release** as the only line that receives security fixes. Once `v0.2.x` is tagged, report issues against the latest patch of that minor line.
+Until a public tag is cut, treat **main** as the only line that receives security fixes. Versions are whole numbers. Report issues against the current version.
 
 ## What this project is (and is not)
 
@@ -17,7 +17,7 @@ Agent Letterbox is a **local filesystem protocol** plus a small Bash CLI. It has
 
 Letters are operator/user content on disk. The core project never transmits letter bodies to a network service.
 
-## Threat model (v0.2)
+## Threat model
 
 | Trust | Assumption |
 |-------|------------|
@@ -38,7 +38,7 @@ Letters are operator/user content on disk. The core project never transmits lett
 6. **Shared hosts:** Do not expose Letterbox directories on untrusted multi-user systems without additional access control.
 7. **External intake (if any):** Chat/email/webhooks are entry points, not bus identities. Allowlist sources before publishing letters; unknown senders fail closed; missing allowlist denies all.
 
-### Explicitly out of scope for v0.2 core
+### Explicitly out of scope
 
 - Cryptographic signing of letters
 - Mutual authentication of agents

@@ -11,10 +11,8 @@ fail() { printf 'agent-letterbox-rex installer: %s\n' "$*" >&2; exit 1; }
 command -v git >/dev/null 2>&1 || fail 'Git is required. Install Git, then run this command again.'
 if [[ -e "$install_dir" && ! -d "$install_dir/.git" ]]; then fail "$install_dir exists but is not an Agent Letterbox Git checkout"; fi
 updated=false
-previous=''
 if [[ -d "$install_dir/.git" ]]; then
   printf 'Updating Agent Letterbox for Rex in %s\n' "$install_dir"
-  previous="$(cat "$install_dir/VERSION" 2>/dev/null || true)"
   git -C "$install_dir" pull --ff-only
   updated=true
 else
@@ -35,17 +33,8 @@ chmod +x "$install_dir/bin/letterbox" "$install_dir/adapters"/*.sh "$install_dir
 # whole team, so an update must not present it as the next step.
 if [[ "$updated" == true ]]; then
   printf '\nUpdated Agent Letterbox for Rex to %s.\n' "$(<"$install_dir/VERSION")"
-  # 0.7.1 changed what a box set up earlier does. Say so once, to an update
-  # that crosses it.
-  case "$previous" in
-    0.[0-6].*|0.7.0)
-      printf 'Since 0.7.1 every letter rings, and the doorbell is typed into the agent'\''s pane by default.\n'
-      printf 'To stop the typing, add  export LETTERBOX_REX_SUBMIT=0  to your Letterbox'\''s env.sh.\n' ;;
-  esac
-  # Since 0.6.4 setup also links the Agent Letterbox skill into ~/.claude/skills,
-  # for agents that read skills only from there; a team set up earlier
-  # never got that link. Make it where setup would have: the shared skill is
-  # this installation's, ~/.claude exists, and nothing is there yet.
+  # An update links the skill where an earlier setup would have, when that
+  # parent directory already exists and the shared skill points here.
   skill_source="$(cd "$install_dir/bin" && pwd)/../skills/agent-letterbox"
   claude_skill="$HOME/.claude/skills/agent-letterbox"
   if [[ -z "${LETTERBOX_SKILLS_DIR:-}" && -d "$HOME/.claude" && ! -e "$claude_skill" && ! -L "$claude_skill" \

@@ -1,7 +1,7 @@
 # The Letterbox Method
 
 *How a team of agents, and one person, keep a shared memory they can check.*
-Version 0.7, November 2026. The practice behind Agent Letterbox 0.7.
+Version 1, November 2026. The practice behind Agent Letterbox for Rex.
 
 ---
 

@@ -40,8 +40,8 @@ The doorbell is deliberately the smallest part: one contentless line that tells 
 agent to check its inbox. The letter is the message; the ring is only latency. **This edition
 rings it inside your Rex blocks.**
 
-- **Status:** active development, used daily by its authors' own agent team. Tagged releases
-  with semver; history in [CHANGELOG.md](CHANGELOG.md).
+- **Status:** active development, used daily by its authors' own agent team. Versions are
+  whole numbers, starting at 1. History is in [CHANGELOG.md](CHANGELOG.md).
 - **Bridge:** [agent-letter-bridge](https://github.com/SimonMallas/agent-letter-bridge) —
   the Telegram transport bridge, on PyPI.
 - **License:** MIT ([LICENSE](LICENSE)).

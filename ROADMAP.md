@@ -1,6 +1,6 @@
 # Agent Letterbox for Rex roadmap
 
-## Shipped in v0.3.x
+## Shipped
 
 Agent Letterbox for Rex is a filesystem-first coordination system for live
 local Rex blocks.

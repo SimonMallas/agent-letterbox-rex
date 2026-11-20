@@ -81,18 +81,18 @@ H="$tmp/not-set-up"; mkdir -p "$H/.claude"; install "$H" >/dev/null
 install "$H" >/dev/null
 [[ ! -e "$H/$claude_skill" ]] || bad "no link before setup has run; setup makes it"
 
-# Updating across 0.7.1 changes what a box set up earlier does: every letter
-# rings, and the doorbell is typed unless SUBMIT is 0. The update says so once;
-# an update within 0.7.1 does not repeat it (10 Nov).
-[[ "$again" != *"Since 0.7.1"* ]] || bad "an update within 0.7.1 repeats the 0.7.1 notice"
+# This edition's versions are whole numbers. An update names the new version
+# and does not announce an older three-part number.
+[[ "$again" != *"0.7."* ]] || bad "an update announces an old three-part number"
 git -C "$tmp/source" checkout -q -b across
 printf '0.7.0\n' > "$tmp/source/VERSION"
-git -C "$tmp/source" -c user.name=t -c user.email=t@example.invalid commit -q -am 'stand-in 0.7.0'
+git -C "$tmp/source" -c user.name=t -c user.email=t@example.invalid commit -q -am 'stand-in old number'
 AGENT_LETTERBOX_INSTALL_DIR="$tmp/across" AGENT_LETTERBOX_BIN_DIR="$tmp/across-bin" bash "$root/install.sh" >/dev/null 2>&1
 printf '%s\n' "$version" > "$tmp/source/VERSION"
 git -C "$tmp/source" -c user.name=t -c user.email=t@example.invalid commit -q -am 'back to this version'
 across="$(AGENT_LETTERBOX_INSTALL_DIR="$tmp/across" AGENT_LETTERBOX_BIN_DIR="$tmp/across-bin" bash "$root/install.sh" 2>&1)"
-[[ "$across" == *"Since 0.7.1 every letter rings"* && "$across" == *"export LETTERBOX_REX_SUBMIT=0"* ]] \
-  || bad "an update from 0.7.0 does not say the doorbell now types by default: $across"
+[[ "$across" != *"0.7."* ]] || bad "an update from an old number still speaks in that numbering: $across"
+[[ "$across" == *"Updated Agent Letterbox for Rex to $version."* ]] \
+  || bad "an update from an old number does not name this version: $across"
 
 printf '%s\n' 'install update suite: PASS'

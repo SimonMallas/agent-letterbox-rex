@@ -1,0 +1,66 @@
+.PHONY: test ci
+
+# Tests bring their own Rex mocks and isolated boxes: never inherit a Rex
+# block's environment when the suite is run inside Rex.
+unexport REX_BIN_PATH REX_BIN_DIR REX_BLOCK REX_SESSION REX_SERVER
+
+# Run a lifecycle suite and require its final PASS footer (guards set -e early abort).
+define run_lifecycle
+	@out=$$(mktemp); \
+	if ./$(1) >"$$out" 2>&1; then rc=0; else rc=$$?; fi; \
+	cat "$$out"; \
+	if ! grep -qF '$(2)' "$$out"; then \
+	  echo "FAIL: $(1) missing required footer: $(2) (rc=$$rc)" >&2; \
+	  rm -f "$$out"; \
+	  exit 1; \
+	fi; \
+	rm -f "$$out"; \
+	exit $$rc
+endef
+
+test:
+	python3 -B tests/test_stale_lifecycle_lock_race.py
+	./tests/test_lock_exclusivity.sh
+	python3 -B tests/test_hotpath.py
+	python3 -B tests/test_query.py
+	python3 -B tests/test_listing_boundary.py
+	python3 -B tests/test_lint_notes.py
+	python3 -B tests/test_writer_query.py
+	python3 -B tests/test_query_mutation.py
+	python3 -B tests/test_owed_view.py
+	python3 -B tests/test_notes_map.py
+	python3 -B tests/test_tidy_line.py
+	./tests/smoke.sh
+	./tests/test_format_gate.sh
+	./tests/test_format_gate_mutation.sh
+	python3 -B tests/test_format_gate_readers.py
+	python3 -B tests/test_format_gate_parity.py
+	./tests/test_outbox_sweep_exclusion.sh
+	./tests/test_error_paths.sh
+	./tests/test_help.sh
+	./tests/test_small_fixes.sh
+	./tests/test_bell_reaches.sh
+	./tests/test_cli_maintenance.sh
+	./tests/test_cli_maintenance_mutation.sh
+	./tests/test_letter_epoch_stat.sh
+	./tests/test_letter_epoch_stat_mutation.sh
+	./tests/test_two_fence_parser.sh
+	./tests/test_no_private_data.sh
+	./tests/test_no_private_vocabulary.sh
+	./tests/test_no_private_vocabulary_mutation.sh
+	./tests/test_release_text.sh
+	$(call run_lifecycle,tests/test_lifecycle_v02.sh,lifecycle v0.2: PASS)
+	$(call run_lifecycle,tests/test_lifecycle_v03.sh,lifecycle v0.3: PASS)
+	./tests/test_lifecycle_early_abort_mutation.sh
+	./tests/test_resolver_v03.sh
+	./tests/test_check_v03.sh
+	./tests/test_confirm_v03.sh
+	./tests/test_rex_adapter.sh
+	./tests/test_doorbell_docs_drift.sh
+	./tests/test_doorbell_docs_drift_mutation.sh
+	./tests/test_ring_lookup_retry.sh
+	./tests/test_ring_mixed_version.sh
+	./tests/test_bridge_reply.sh
+	./tests/test_install_update.sh
+
+ci: test

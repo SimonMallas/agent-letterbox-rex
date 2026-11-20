@@ -1,0 +1,279 @@
+# Changelog
+
+All notable changes to Agent Letterbox for Rex are documented here.
+
+This tree is the Rex edition. Entries under older headings are the shared history this edition was split from.
+
+## [0.7.3] — 2026-11-16 (Rex edition)
+
+- Rex: `letterbox rex` registers a block by its full id and the doorbell rings that block. Every Rex command passes `--autostart=false`. A label or a short id is refused. Text is sent first, and Enter is a separate key after the usual pause. A missing block is `surface_not_found`. A server that is not there is `server_unreachable` and is not retried. It reads `REX_BIN_PATH` (an explicit binary; Rex does not set that name), `REX_BIN_DIR` (the directory Rex sets), `LETTERBOX_REX_REGISTRY`, `LETTERBOX_REX_PATTERNS`, and `LETTERBOX_REX_SUBMIT`.
+- Box format: a box with no `format.mark`, or a mark whose bytes are exactly `flat-v1`, or exactly `flat-v1` and one newline, is read as before. Writing the mark with echo is that second form. Any other mark is refused before the letter is served, including other text, a symlink, a directory, a mark that is too long, a second newline, and a mark that is not plain text. The refusal is one line on stderr, stdout is empty, and the letter stays where it was. `check`, `read`, `file`, `reply`, `nudge`, `done`, `query`, and `send` all refuse, and so does the fast path. No new settings.
+- A ring whose lookup times out before any text is tried again by the wrapper: 3 lookups at the 1s default step cap, 100 ms then 400 ms apart, and the call returns within 12s. The per-attempt backstop stays 7 × step + 5s + the pause, which is 14s at the defaults. The 12s return budget takes the minimum, so the first attempt's backstop is 12s. The adapter's own step cap stays 1s. A floor, occupant, or front timeout is also `helper_timeout` before any text, so those are tried again too. A timeout after text or the agent prompt starts stays `unconfirmed` and is not tried again. If the lookups are exhausted, it writes `.unresolved-rings/<recipient>/<letter-id>` and tells the sender to nudge. If that record cannot be written, the nudge line is not printed and no path is printed. The record still says `helper_timeout`. The contract line is `lookup_spent`, so a caller that retries only `helper_timeout` does not run the loop again. A wrapper that still emits `helper_timeout` is unchanged. Checking that recipient's inbox names the unresolved ring only while the letter is still there. Filing the letter removes the record, and check removes a record whose letter has left the inbox. No new settings.
+- `check`, and `nudge`, `read` and `file` by exact id or token, read an ordinary inbox in one pass instead of starting several programs per letter. Output is unchanged and large ordinary inboxes are much faster. An inbox with an unstamped id, non-ASCII filename, control character in a progress note, symlink, or non-stamp sidecar uses the previous slower path for the whole check. If the inbox changes during the fast pass, check restarts once on the previous path and may show a letter that arrived in that moment.
+
+## [0.7.2] — 2026-11-16 (Herdr edition)
+
+- Both query modes recheck each letter’s identity and read its header a second time before reporting complete. These checks are best-effort and do not make a snapshot; queries on large mailboxes take roughly 1.7 to 2 times as long.
+
+- `letterbox --help` and `letterbox <command> --help` (or `-h`) print usage and exit 0, with no agent name or Letterbox set. Before, `check`, `query` and `lint-notes` each answered with a different error.
+- `query view=owed to=<agent>` refuses an agent that has no mailbox in the Letterbox, with `no_mailbox_for_agent` and exit 2. Before, it reported a complete answer with nothing owed.
+- **Changed output:** the owed view has a new tier, `OPEN`, for a request or phone letter that says `requires_ack: false` and has no answer yet, with `counts.open`. `UNACKED` and `counts.unacked` now cover the rest: `requires_ack: true`, or the field missing or unreadable. Before, both kinds were `UNACKED`. Anything that reads the owed JSON and treats `UNACKED` as "every unanswered request" needs to add `OPEN`.
+- The map line says `N unknown-time, not counted`, so a zero next to it is not read as "nothing new".
+- A strict query that stops on one invalid or unreadable letter now names it, such as `in reviewer/inbox/old-name.md`.
+- `lint-notes` no longer reads a note's header lines (`as-of:`, `threads:`, `covers:`, `rule:`, in the first 20 lines) as citations. Before, a thread whose first letter had been superseded was reported as STALE on the `threads:` line. A mistyped thread id is still named by `check --maps`.
+
+## [0.7.1] — 2026-11-10 (Herdr edition)
+
+- `check` ignores a `LETTERBOX_CHECK_STALE_DAYS` that is not a whole number (such as `08`, `1.5` or a word) instead of aborting, and a broken link that sorts first in the inbox no longer hides every letter after it.
+- Every ring now uses the box's generated `env.sh` when the caller has no doorbell set, so `send`, `reply` and `nudge` from an agent that was not started by `letterbox herdr run` ring too. Before, they reported `adapter_unavailable` and rang nobody. An explicit doorbell setting still takes precedence. Your own `check` prints `doorbell: not set up` when neither the environment nor `env.sh` names a doorbell.
+- A retried reply rings again until the recipient files the reply. Before, a reply that died after it was written and before its ring never rang on any retry.
+- Registry writes take a lock, so agents registering at the same moment no longer overwrite each other's row.
+- Every letter rings. `send`, and `reply` with `ack`, `nack` or `result`, ring the recipient with or without `--now`; `--now` now only marks a letter urgent. Before, a letter without `--now` landed and rang nobody.
+- The doorbell is typed into the agent's pane by default. Before, typing needed `--automatic-doorbells` at setup, and without it the agent was not woken. Setup now always turns typing on and still accepts `--automatic-doorbells`. Enter can also send text already typed in that pane; only `LETTERBOX_HERDR_SUBMIT=0` stops typing, and your own `check` then says `doorbell: typing is off`. A Letterbox set up earlier without the flag types too once updated, with no setup run, so the installer says so when it updates from an earlier version.
+
+## [0.7.0] — 2026-11-08 (Herdr edition)
+
+- Locks are taken with the mkdir(2) syscall through perl, not the external mkdir binary: uutils coreutils 0.10.0 (Ubuntu 25.10 and later, including GitHub's ubuntu-latest) can report success under a race even when its mkdir(2) failed, so two agents could both hold one lock. Found on an Ubuntu 26.04 laptop; both places a lock is taken are fixed; regression test included (tests/test_lock_exclusivity.sh). Perl becomes a required lock dependency.
+
+- An update by the installer now adds the Agent Letterbox skill link that setup has made since v0.6.4, so a team set up earlier gets it without running setup again. The link is made only where setup would make it, and anything already there is left alone.
+- The README has an Updating section: how to check your version, and how to update an installer, Git or `npx skills` install.
+- Setup's messages and the startup note (`AGENT-LETTERBOX.md`) no longer name one agent app for the extra skill link. Setup and an update print `Agent Letterbox skill also linked: <path>`.
+- A doorbell timeout (`LETTERBOX_DOORBELL_TIMEOUT`) that is not whole seconds from 1 to 999 is now refused as `invalid_timeout` before any Herdr command. A value such as `x` used to crash the step's time limit after the Herdr command had started, so the pane lookup ran with no limit and the ring reported `surface_not_found`. Nothing was typed. `letterbox ring` reports such a value the same way; before, a value such as `08` broke its own budget arithmetic and the ring reported `unconfirmed`.
+- The adapter now refuses to type a doorbell into a shell at its prompt. Before typing, it checks what Herdr reports in front of the agent's pane: a coding agent Herdr recognises gets the doorbell through `herdr agent prompt` (text and Enter in one submission, only while that agent is in front; one waiting at an approval or question is refused as `agent_blocked`), a shell at its own prompt is refused as `shell_foreground`, and any other app gets the text and, after the pause, Enter only if it is still in front. It is a check, not a lock: what is in front can change between the check and the typing. Before this, a doorbell rung at a pane whose agent had exited ran in the shell as a command and was reported as `submitted`.
+- The check needs Herdr 0.9.1 or newer. With an older Herdr, or when Herdr cannot say what is in front, the doorbell is typed as before, without the check, and `letterbox check` prints `shell-guard: unavailable`.
+- Add `letterbox query view=owed to=<agent>`: the letters an agent still owes, oldest first. These are unfiled requests and letters asking for an acknowledgement. A letter leaves the view when it is filed, not when it is answered. Each is marked `UNACKED`, `ACCEPTED-OPEN` or `ANSWERED`, with overdue and unknown-time counts, and `--limit` (default 20) marks a cut list `truncated`. It uses compatibility-v2's own answered rule. Phone letters from Agent Letter Bridge are owed until filed. When the bridge's reply file exists, the letter is marked `ANSWERED-UNPROVEN`: a reply was composed, with no proof it was delivered.
+- `check` gains a map line when `LETTERBOX_NOTES_DIR` is set: how many notes, and how many have no `as-of:` cursor. `check --maps` shows, per note, how many letters in its `threads:` were sent after its cursor. Thread ids may be separated by commas or spaces, and a listed thread with no letters in the box is named, since a mistyped id would otherwise read as nothing new. With the variable unset, plain `check` prints nothing and `check --maps` says it is not set. A folder that can't be read is reported.
+- Your own `check` ends with one line once it counts five or more letters: `N non-task letters to review for filing — letterbox file to tidy.` It counts letters that ask for no acknowledgement and are either not a request from a sender with a mailbox here, or a phone letter whose reply has been composed. A replied phone letter stays owed on `view=owed` until it is filed, so it is counted here and still owed there. `check` cannot tell whether a letter was read or a phone reply delivered, so the line asks for a review, not a filing. `LETTERBOX_CHECK_TIDY_AT` changes the five, and 0 turns the line off. It rings nobody and files nothing.
+- Add `letterbox lint-notes`: it checks each note in `LETTERBOX_NOTES_DIR` against the letters in the box, mechanically. It reports a citation with no matching letter (`ORPHAN`) or more than one (`AMBIGUOUS`), a cited letter that has been superseded (`STALE`) or whose supersedes target is missing (`DANGLING`), a note with no `as-of:` cursor (`UNCURSORED`), and a citation alone on the line after its prose (`FORMATTING`). It never judges whether a citation supports a claim. `--json` gives machine output, and `--baseline` records the current findings so later runs report only new ones. A word in code quotes, such as a flag or a command name, is a citation only when it is a timestamp id or a letter in the box. A refusal (exit 2) names its cause in `reason`, with the scanner's codes in `issues`. If letters arrive or are filed during the scan, lint scans once more, and it reports moving mail only when it saw a change.
+- `letterbox query`, `check --maps` and `lint-notes` resolve the box to its physical path first. A box reached through a symlink, such as a linked shared folder, used to come back empty, marked only `root_component_symlink`. The scanner still refuses a symlink that appears in the root during a scan.
+- The skill and the startup note say that Agent Letter Bridge 0.7 files a person's letter once its reply is accepted, and that a reply or result to another agent still goes by `letterbox reply` or `letterbox send`.
+- The README no longer calls the record a truth layer or ground truth. It is a shared record of what was written, under whose name, and what still stands until a later letter replaces it. It also no longer says terminal text is a handoff's only copy, or that a crashed agent gets its whole context back: it can rebuild what was written down.
+- The Letterbox Method now ships with every edition: `docs/method.md` for people (the rules, the habits and the 0.7 command for each, the note header and the exit drill), and the rules and note header in the skill itself, with `references/method.md` beside it, for agents.
+
+## v0.6.4 — 2026-10-26 (Herdr edition)
+
+- The doorbell's Enter now waits `LETTERBOX_DOORBELL_ENTER_DELAY` seconds after its text (default 2; whole seconds 0–5, 0 for no pause). An agent terminal app that detects pastes (Muse Code) swallowed the Enter sent with the text, so the doorbell sat unsubmitted while the ring reported `submitted`. An invalid value is refused as `invalid_enter_delay` before any multiplexer command, and the ring's time budget grows by the pause. `submitted` is documented as what it is: the multiplexer accepted the text and the Enter, not proof the agent's app submitted it.
+- Setup also links the Agent Letterbox skill into `~/.claude/skills` when that parent directory exists. Agents that read skills only from there do not read `~/.agents/skills`, so they never loaded the skill. An existing `~/.claude/skills/agent-letterbox` is left alone, and `LETTERBOX_SKILLS_DIR` still takes precedence.
+- Running setup again to add an agent no longer unregisters the agents already running. Setup emptied the live registration registry, so every running agent's doorbell stopped until that agent registered again. It now keeps registrations whose pane is still live and drops only the dead ones.
+- The installer says when it updated an existing copy, and no longer prints the first-time team setup on an update. That setup is shared, and an agent updating itself had to work out not to run it.
+- `register` says when the agent's own commands still need `LETTERBOX_AGENT`. Registering a pane names it for the doorbell only, so an agent that registered itself was refused by `letterbox file` until the variable was set. `run` sets it, and then nothing is printed.
+
+## v0.6.3 — 2026-10-25 (Herdr edition)
+
+- `letterbox reply` to a letter whose sender has no inbox now says how to answer a person who wrote through Agent Letter Bridge (`alb --reply-to <letter-id>`), instead of only "original sender has no inbox". The generated AGENT-LETTERBOX.md, the skill and the README say the same. Nothing is read from the letter beyond its validated id.
+
+## v0.6.2 — 2026-10-24 (Herdr edition)
+
+- Let `letterbox ring` load the configured box's generated `env.sh` when a Bridge service supplies `LETTERBOX_DIR` without doorbell settings, while preserving explicit settings. The reserved Bridge doctor probe returns its required one-line no-live-surface outcome without requiring or announcing a letter.
+
+## v0.6.1 — 2026-09-30 (Herdr edition)
+
+- Add `letterbox ring <to> <type> <id>`: rings for a letter another tool already wrote, in the bus helper's argument shape, so Agent Letter Bridge's integrated mode can ring a Herdr agent with `ALB_BUS_BINARY` pointed at `letterbox`. It admits only a regular (non-symlink) file in the recipient's canonical inbox whose own envelope `id`, `to` and `type` match the command, and prints one `doorbell-outcome v=1` line.
+- Add `tests/test_ring_verb.sh`, which also runs the released Agent Letter Bridge's own ring caller and parser against this binary. CI installs Agent Letter Bridge 0.4.2 by hash into its own Python 3.13 and fails if that contract does not run.
+
+## v0.6.0 — 2026-09-27 (Herdr edition)
+
+- Add a Herdr plugin (`herdr-plugin.toml` at the repository root; `herdr plugin install SimonMallas/agent-letterbox-herdr`, Herdr 0.9.1+): a read-only popup with the focused agent's inbox, open requests it owes, and overdue requests; and `pane.closed` / `pane.exited` hooks that unregister the pane's agent.
+- Tests no longer inherit a Herdr pane's `HERDR_*` environment (`test_query.py` strips it; `make` unexports it), so the suite passes when run inside Herdr.
+- Add `tests/test_herdr_plugin.sh`, a live plugin suite on an isolated Herdr session (config and state), run in `make ci` and required by the CI native gate.
+- `letterbox herdr unregister <agent> --pane <id> --socket <path>` removes the registration only if the agent is still on that pane and socket, in one pass, so a late pane-close cannot delete an agent that re-registered elsewhere. Without the flags, behaviour is unchanged.
+- `letterbox herdr register` and `unregister` now hold a lock for their whole registry read-modify-write, so an automatic cleanup and a new registration cannot overwrite each other.
+- Fix a stale-lock race in the lifecycle lock used for letters and the Herdr registry: when a lock holder died, two waiting processes could both clear the stale lock and proceed together. Stale locks are now cleared one breaker at a time: a short `perl` process takes a kernel-released gate beside the lock (shared by every writer of that lock, even across Letterbox roots that share a registry), re-checks staleness, and removes the lock; waiting for the gate is bounded. A pid file that is empty or unreadable is judged by age instead of blocking forever.
+- A lifecycle lock whose pid belongs to a live process that cannot be signalled (for example another user's) is never broken; waiting for it ends in a "timed out waiting for lifecycle lock" error instead of waiting forever.
+- Progress notes are printed with control characters removed, so a note cannot inject terminal escape sequences (C0 or UTF-8-encoded C1) into `letterbox check` or the plugin popup.
+
+## v0.5.0 — 2026-09-25 (Herdr edition)
+
+- Add read-only `letterbox query`: strict-v1 envelope cards by default and
+  explicit `--compat-v2` JSON with diagnostics and scoped completeness.
+- Query requires Python 3.9+ (standard library only), with an explicit refusal
+  when unavailable. Existing send/reply/registration and bounded doorbell
+  behavior is unchanged.
+- Writer contract: new send/reply letters carry UTC `sent` from a single clock
+  snapshot; `letterbox send --supersedes <id>` adds the optional annotation
+  with bounded reference validation (repeated flags refused; replies do not
+  inherit). Existing letters are unchanged.
+- Identifier/reference grammar is 1–243 ASCII bytes (255-byte filename budget
+  minus the 12-byte temporary wrapper) across writer and both query modes.
+  New sends bound their normalized slug to leave room for the recipient's
+  longest reply suffix, reporting the actual per-send maximum on refusal.
+  Session and deadline are validated before any lock or publication; inherited
+  reply linkage is validated before publication. Invalid session labels are
+  refused before a reply can create a lifecycle lock.
+- Add synthetic query/writer test suites to `make ci`, with Python 3.9 and 3.13
+  on the Ubuntu and macOS workflow matrix. Matrix configuration is not a claim
+  of a passed run.
+- No archive traversal, archive verb, or send-side validation expansion.
+  See [query contracts and limitations](docs/query.md).
+
+## [0.4.0] — 2026-09-17
+
+### Changed
+
+Release 2 doorbell contract. The ring now reports exactly one
+`doorbell-outcome v=1` line per attempt — `submitted`,
+`pasted_not_submitted`, or `no_live_surface` with a named reason — owned by
+the helper wrapper, never by adapter prose. The typed doorbell line may
+name the durable letter's sender.
+
+- The wrapper is the sole outcome owner: the adapter's stdout is a private
+  pipe; exactly one valid contract line on exit 0 forwards, anything else
+  reports `unconfirmed` (`unparseable` is the consumer's verdict, never an
+  emitter token).
+- Two-step bounded inject (text, then Enter), each step bounded and
+  classified: `send_failed`, `pasted_not_submitted enter_failed`,
+  post-inject `unconfirmed`; only a proven pre-injection timeout is
+  `helper_timeout` (the one retryable class).
+- Runner-owned timeout sentinel: a child exiting 124 on its own is
+  remapped and can never be misread as a timeout. Verified-runner check:
+  missing python3 or herdr is `adapter_unavailable` (non-retryable), and
+  without the bounder the wrapper fails closed — the adapter is never run
+  unbounded.
+- Ruled exit-status precedence: `submitted`/`pasted` claims after a
+  nonzero exit downgrade to `unconfirmed`; a valid `no_live_surface` line
+  keeps its named reason.
+- Ruling-5 sender clause resolved from the durable letter (never
+  `LETTERBOX_AGENT`), omitted when invalid — never `from -`.
+- Bounds budget documented in SPEC: 1s step budget, 4×step+5s wrapper
+  backstop (9s at default), strictly inside the caller's 10s deadline.
+- `nudge` now passes a real slug to the doorbell adapter (previously an
+  empty argument silently prevented the ring).
+
+## [0.3.3] — 2026-09-16
+
+Maintenance cut of public main since 0.3.2. Outbox inbound exclusion is
+already on this tree and is not reimplemented. Timestamp helpers already
+had a GNU date fallback and are unchanged.
+
+### Fixed
+
+- `file_mtime` accepts a probe only when the complete captured stdout is a
+  canonical decimal epoch (optional minus; no leading zeros). Nonzero exit
+  discards stdout. GNU `-c` then BSD `-f`.
+- `send` and `reply` refuse an empty or whitespace-only body. Non-blank
+  bodies keep their surrounding whitespace.
+- Frontmatter is trusted only with an opening `---` and its closing `---`.
+  Further `---` lines belong to the body. Unterminated letters are skipped
+  in check/token/read/file/reply with compact ids (no raw path or slug).
+- `message_body` keeps `---` lines after the envelope close, so an identical
+  ACK retry with a fenced body matches the stored letter. A different body
+  still collides.
+- `check --thread` skips unterminated letters instead of exiting 1.
+- `message_body` emits raw lines so CRLF bodies survive identical ACK retry.
+
+### Added
+
+- README links the shared guide.
+
+## [0.3.2] — 2026-08-16
+
+### Fixed
+
+- **The documented doorbell example did not match what the adapter emits.** README, SPEC and
+  the Herdr docs showed:
+
+  a short form ending in `check your inbox`, with no type, path or token. The adapter has
+  never emitted that shape. It emits:
+
+  ```text
+  📬 letterbox doorbell: unacked <type> in <letterbox>/<agent>/inbox/ — please check
+  📬 letterbox doorbell: unacked <type> in <letterbox>/<agent>/inbox/ — please check · <8-lowercase-hex>
+  ```
+
+  **Impact:** an agent that built its permitted-line rule from the documented example would
+  have matched nothing and silently ignored every live doorbell — with no error to diagnose.
+  If you configured doorbell acceptance from the docs before 0.3.2, re-check it against the
+  two shapes above and match by prefix, never by exact equality.
+
+### Added
+
+- **A docs/code drift gate** (`tests/test_doorbell_docs_drift.sh`, run by `make test`). It
+  executes the adapter against a mocked platform CLI, captures the line actually emitted, and
+  asserts every documented doorbell line in every tracked file conforms to it. Failures name
+  the file and line. A companion mutation harness proves the gate catches planted drift in
+  README, SPEC, SKILL and `docs/`, and that it still passes on a clean tree.
+
+  This is the durable fix. The wrong example was a symptom; nothing previously bound the
+  documentation to the code.
+
+- **An agent entry point in the README**, naming `skills/agent-letterbox/SKILL.md` as the
+  operating manual. The acceptance rule lived only in the skill, and nothing pointed to it.
+
+## [0.3.1] — 2026-08-16
+
+- Correct v0.3 release metadata and roadmap wording.
+- Complete public v0.3 release-gate coverage, including worktree-clean vocabulary mutations and early-abort lifecycle checks.
+
+## [0.3.0] — 2026-08-16
+
+Public v0.3 adds operational reading verbs and additive doorbell tokens while keeping the v0.2 letter format and doorbell byte-prefix.
+
+### Added
+
+- `letterbox check` redesign: open work only, live first, stale last (>14 days of last-activity silence, marked `STALE <age>`), counts in the header. `check` never prints letter bodies; it labels display-ids (`timestamp · token`), `[UNACKED]` / `[ACCEPTED]` state, and progress notes with age. `--recent` hides stale items behind a hidden-count footer; `--thread <id>` gives a read-only fan-out (via `thread:`, then `re:` fallback) reporting lifecycle state, never attention.
+- `letterbox read <id|display-id|token>` prints the exact durable letter from your own inbox.
+- `letterbox progress <ref> <one-line>` records progress in the `.md.ack` sidecar of accepted work; `check` shows it with its age. No new letter, no state change.
+- `letterbox nudge <id|display-id|token>` re-rings an open letter; it creates nothing and refuses a filed/terminal letter.
+- `letterbox token <8hex>` resolves a doorbell token to `unhandled` / `already filed` / `unknown`, and lists matches (taking no action) on a collision.
+- Doorbell lines may carry an additive opaque token suffix: `… — please check · <8hex>`. The token is derived from the letter id and is never a slug, body, or path.
+- `letterbox file <path> --read` for inbound terminal replies given as a filesystem path (structural rule C: path-form filing of an unread inbound `result`/`nack` refuses; an explicit id, display-id, or unique token files directly).
+- Low-ceremony close: a `requires_ack: false` letter may be closed in one step with `letterbox reply <id> result|nack <slug>` — no prior ACK. `ack` on a non-task letter is refused with the correct next action.
+- The helper bounds doorbell adapter runs (`LETTERBOX_DOORBELL_TIMEOUT`, default 5s) so an unresponsive pane path cannot hang a sender; the letter is already durable. Adapter outcomes are reported as `submitted`, `pasted_not_submitted`, or `no_live_surface` — never that the letter was read.
+
+### Changed
+
+- `reply` reads the body from stdin before taking any lifecycle lock; a TTY or empty stdin fails fast with usage instead of hanging or pinning the letter.
+- Confirmations and errors label letters by display-id (`timestamp · token`), never by filename, slug, or path.
+- Lifecycle errors name the correct next action (wrong reply verb, terminal parent, unknown id, ACK-required).
+
+### Compatibility
+
+- Additive doorbell change: v0.2 tokenless lines and v0.3 token-bearing lines are both valid doorbells. Match by prefix/pattern only; exact full-line equality is a cutover hazard.
+- All v0.2 lifecycle rules are unchanged: ACK stays non-terminal, `file` refuses task letters, `done` refuses accepted work, ownership replies come from `letterbox reply`.
+- All agents in a team should run the same helper version.
+
+## [0.2.0] — 2026-08-11
+
+Public v0.2 establishes a durable task lifecycle for local Herdr teams and documents the resulting state machine.
+
+### Fixed
+
+- `reply <id> ack` marks a task as accepted work in progress and leaves it in the inbox; only `nack` and `result` close it.
+- The doorbell now rings after the letter's local state has settled, not before.
+- `check` excludes `.ack` sidecars from the letter count and warns about an orphan sidecar.
+- Message parsing tolerates CRLF line endings.
+- A failed reply link is recovered deterministically rather than aborting.
+
+### Added
+
+- `.md.ack` sidecar marking a letter as accepted and in progress.
+- `letterbox file <id>` to dispose of a letter that requires no acknowledgement.
+- Lifecycle locking so concurrent replies to the same letter converge on one terminal state.
+- Derived `thread` field on ownership replies.
+- `docs/lifecycle.md` and expanded SPEC/README lifecycle wording.
+- `letterbox herdr setup` / `run` / `register` / `unregister` / `status`, live pane+socket registry, static pane-id fallback, and beginner install path (folded from earlier unreleased history).
+
+### Changed
+
+- `SPEC.md` raised to v0.2 with an explicit letter state machine and task vs non-task rules.
+- `done` refuses to close a letter that has been acknowledged; use `reply <id> result|nack`.
+- `file` refuses letters that require acknowledgement.
+- `send` rejects freeform `ack`, `nack`, and `result`; use `reply` for ownership responses so the helper derives their link and retry identity.
+- `delegate` now requires `--ack`.
+- Documentation examples use neutral role identities (`planner`, `reviewer`, `builder`, `researcher`).
+
+### Compatibility
+
+- Additive message-format change: ownership replies carry an optional `thread` field. Existing letters remain valid; older readers ignore unknown frontmatter keys.
+- Existing scripts that send freeform `ack`, `nack`, or `result` must switch to `letterbox reply <id> <ack|nack|result> <slug>`.
+- Existing delegate sends must include `--ack`.
+- All agents in a team must run the same v0.2 helper version.
+
+## [0.1.0] — 2026-07-18
+
+### Added
+
+- Durable Letterbox CLI with atomic publish, reply-first handling, locks, and completion checks.
+- Local Herdr bootstrap (`setup` / `run` / `register` / `status`).
+- Registry-first adapter using Herdr `pane send-text` + Enter when submit is enabled.
+- Core tests and beginner documentation.

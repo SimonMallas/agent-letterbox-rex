@@ -1,0 +1,54 @@
+name: smoke
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: smoke (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # 3.9 stays on 24.04: ubuntu-latest is 26.04, whose setup-python has no 3.9.
+          - { os: ubuntu-24.04, python: '3.9' }
+          # ubuntu-latest is 26.04 (uutils coreutils): the lock-race regression leg.
+          - { os: ubuntu-latest, python: '3.13' }
+          - { os: macos-latest, python: '3.9' }
+          - { os: macos-latest, python: '3.13' }
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up query interpreter
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Run test suite
+        shell: bash
+        run: make ci 2>&1 | tee smoke.log
+
+      - name: Rex suite must prove it ran
+        run: |
+          if grep -E 'test: SKIP' smoke.log; then
+            echo "a suite skipped in CI — not allowed" >&2
+            exit 1
+          fi
+          if grep -F 'SKIP (not a git checkout)' smoke.log; then
+            echo "a git-only suite skipped in CI — not allowed" >&2
+            exit 1
+          fi
+          grep -qF 'rex adapter: PASS' smoke.log || {
+            echo "rex adapter did not prove it ran" >&2
+            exit 1
+          }
+          grep -qF 'install update suite: PASS' smoke.log || {
+            echo "install update suite did not prove it ran" >&2
+            exit 1
+          }

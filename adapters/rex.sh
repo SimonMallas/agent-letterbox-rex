@@ -9,7 +9,7 @@
 # A block id is the full form only: block: and a UUID. A label or a short
 # id is ignored, because Rex can match those to the wrong block.
 #
-# Every Rex command is --autostart=false. A missing server stays missing.
+# Every Rex command is --autostart=false. This adapter does not start a server.
 # Text is rex send. Enter is a later rex send-key, after the usual pause.
 # Binary: REX_BIN_PATH if set (that name is ours). Otherwise REX_BIN_DIR,
 # which Rex sets, then the Mac app bundle, then a PATH rex only when

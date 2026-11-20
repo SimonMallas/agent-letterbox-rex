@@ -14,16 +14,22 @@ The id looks like `block:` and a UUID. A label, a position, or a short
 suffix is refused. Those can match a different block.
 
 The doorbell runs `rex send`, waits, then `rex send-key enter`. Every call
-passes `--autostart=false`, so a missing server is not started. Exit 3 from
-Rex is `surface_not_found`. Exit 4 is `server_unreachable`. That is not
-retried: with autostart off, the server will not appear on the next try.
-A lookup that hits the step cap is still `helper_timeout`, and the wrapper
-tries that again.
+passes `--autostart=false`, so this adapter does not start a server. A
+server started some other way can be there on a later nudge.
+
+On lookup, exit 3 skips that row. If no row is live, the outcome is
+`surface_not_found`. Exit 4 on lookup is `server_unreachable` and is not
+retried. A lookup that hits the step cap is still `helper_timeout`, and
+the wrapper tries that again. A send that fails, including exit 3 or exit
+4, is `send_failed`. A step-cap timeout on that send is `unconfirmed`. If
+Enter then fails, the text is already there: `pasted_not_submitted`.
 
 If the foreground program is a shell, or a program in the block says it is
 blocked, the line is not typed. A permission question is that blocked
 state, so Enter is not sent and the question is left unanswered. When the
-foreground cannot be read, the line is typed as before.
+foreground cannot be read, the line is typed. When program status errors,
+or is not readable, the line is typed too. A timeout on either check is
+`helper_timeout` and is not typed.
 
 Known limit: if the block is not a shell and not blocked, text already
 sitting in the block is joined to the doorbell, and Enter submits both.

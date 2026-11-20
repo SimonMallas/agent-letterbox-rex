@@ -697,8 +697,8 @@ cmd_init() {
   printf 'initialized letterbox: %s\n' "$BOX"
 }
 
-# A doorbell that cannot check what is in front of the block types
-# nothing (adapters/rex.sh), so check says so instead of leaving it silent.
+# A doorbell whose foreground cannot be read is still typed
+# (adapters/rex.sh). check prints the adapter's unavailable line.
 shell_guard_note() { # $1=agent
   [[ -n "${LETTERBOX_DOORBELL:-}" && -x "$LETTERBOX_DOORBELL" ]] || return 0
   command -v python3 >/dev/null 2>&1 || return 0

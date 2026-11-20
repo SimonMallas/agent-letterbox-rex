@@ -40,7 +40,7 @@ The doorbell is deliberately the smallest part: one contentless line that tells 
 agent to check its inbox. The letter is the message; the ring is only latency. **This edition
 rings it inside your Rex blocks.**
 
-- **Status:** active development, used daily by its authors' own agent team. Versions are
+- **Status:** active development. Versions are
   whole numbers, starting at 1. History is in [CHANGELOG.md](CHANGELOG.md).
 - **Bridge:** [agent-letter-bridge](https://github.com/SimonMallas/agent-letter-bridge) —
   the Telegram transport bridge, on PyPI.
@@ -299,7 +299,7 @@ printf '%s\n' 'RESULT: no critical issues; two nits in findings.md.' |
 
 Only `nack` or final `result` moves the original letter to `processed/`.
 
-> Typing injects into a live block by default (`LETTERBOX_REX_SUBMIT=1`, written by setup). Use dedicated blocks only. A shell at its prompt is not typed (`shell_foreground`). A program that says it is blocked, including a permission question, is not typed (`agent_blocked`). When the foreground cannot be read, the line is typed. `LETTERBOX_REX_SUBMIT=0` turns typing off, and `check` warns `doorbell: typing is off`. Text already sitting in a block that is not a shell and not blocked is joined to the doorbell. See [docs/rex.md](docs/rex.md).
+> Typing injects into a live block by default (`LETTERBOX_REX_SUBMIT=1`, written by setup). Use dedicated blocks only. A shell at its prompt is not typed (`shell_foreground`). A program that says it is blocked, including a permission question, is not typed (`agent_blocked`). When the foreground cannot be read, or program status errors or is not readable, the line is typed. A timeout on those checks is not. `LETTERBOX_REX_SUBMIT=0` turns typing off, and `check` warns `doorbell: typing is off`. Text already sitting in a block that is not a shell and not blocked is joined to the doorbell. See [docs/rex.md](docs/rex.md).
 
 > Before pressing Enter, Letterbox waits `LETTERBOX_DOORBELL_ENTER_DELAY` seconds (default 2, whole seconds 0–5), because some agent apps treat an Enter sent together with the text as part of a paste and never submit it. If your agent's doorbell sits typed but unsent, raise it; if your agent never needs the pause, set it to 0.
 

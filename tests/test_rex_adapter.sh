@@ -5,7 +5,7 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 lb="$root/bin/letterbox"
 adapter="$root/adapters/rex.sh"
-work="$(mktemp -d /private/tmp/lb-rex.XXXXXX)"
+work="$(mktemp -d "${TMPDIR:-/tmp}/lb-rex.XXXXXX")"
 trap 'rm -rf "$work"' EXIT
 
 block='block:01234567-89ab-cdef-0123-456789abcdef'

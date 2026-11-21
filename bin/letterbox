@@ -480,7 +480,11 @@ rex_registry_path() { printf '%s' "${LETTERBOX_REX_REGISTRY:-$BOX/rex-agents.tsv
 rex_version_ok() {
   local bin="$1" head first out ec
   [[ -n "$bin" && -x "$bin" ]] || return 1
-  head="$(head -c 80 "$bin" 2>/dev/null || true)"
+  # Drop NUL bytes before the substitution. A compiled rex has them in the
+  # header, and bash 5 warns if a command substitution contains one.
+  # C locale keeps macOS tr from warning on the header's other bytes.
+  # The Perl shebang has no NUL, so the guard still sees it.
+  head="$(LC_ALL=C head -c 80 "$bin" 2>/dev/null | LC_ALL=C tr -d '\000' || true)"
   case "$head" in
     "#!"*perl*) return 1;;
   esac

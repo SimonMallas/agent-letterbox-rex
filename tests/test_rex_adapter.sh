@@ -247,6 +247,49 @@ out="$(env -u REX_BIN_PATH -u REX_BIN_DIR \
 [[ ! -e "$work/decoy-ran" ]] || fail "a PATH rex was executed"
 ok "a Perl script on PATH is refused and is not run"
 
+# A compiled rex has NUL bytes in its header. Bash 5 warns when those bytes
+# reach a command substitution. This stand-in keeps a NUL inside the first
+# 80 bytes and still prints a rex version line.
+mkdir -p "$work/nul"
+python3 - "$work/nul/rex" "$work/nul-ran" << 'PY'
+import pathlib, sys
+dest, marker = sys.argv[1], sys.argv[2]
+body = (
+    "#!/bin/sh\n#\0\xff\n"
+    "printf 'ran\\n' >> '" + marker + "'\n"
+    "printf 'rex 1\\n'\n"
+).encode()
+pathlib.Path(dest).write_bytes(body)
+PY
+chmod +x "$work/nul/rex"
+python3 -c 'import pathlib,sys; b=pathlib.Path(sys.argv[1]).read_bytes()[:80]; raise SystemExit(0 if b"\0" in b else 1)' \
+  "$work/nul/rex" || fail "NUL fixture lost its NUL"
+out="$(env -u REX_BIN_PATH -u REX_BIN_DIR \
+  HOME="$work/home" \
+  PATH="$work/nul:/usr/bin:/bin" \
+  LETTERBOX_DIR="$work/box" \
+  LETTERBOX_REX_REGISTRY="$work/box/rex-agents.tsv" \
+  LETTERBOX_DOORBELL_ENTER_DELAY=0 \
+  LETTERBOX_DOORBELL_TIMEOUT=1 \
+  "$adapter" alpha info probe 2>"$work/nul.err" || true)"
+[[ "$out" == 'doorbell-outcome v=1 outcome=submitted reason=- target='"$block" ]] || fail "nul header: $out"
+[[ -s "$work/nul-ran" ]] || fail "nul header was not executed"
+if grep -q -e 'ignored null byte' -e 'Illegal byte sequence' "$work/nul.err"; then fail "null byte warning from adapter"; fi
+ok "a header with a NUL is accepted and does not warn"
+
+rm -f "$work/nul-ran"
+env -u REX_BIN_PATH \
+  HOME="$work/home" \
+  PATH="$work/decoy:/usr/bin:/bin" \
+  REX_BIN_DIR="$work/nul" \
+  LETTERBOX_DIR="$work/nulbox" \
+  "$lb" rex register delta --block "$block" >"$work/nulreg.out" 2>"$work/nulreg.err"
+grep -q '^registered: delta$' "$work/nulreg.out" || fail "register nul: $(cat "$work/nulreg.out")"
+[[ ! -e "$work/decoy-ran" ]] || fail "register nul executed the perl script"
+[[ -s "$work/nul-ran" ]] || fail "register skipped the nul binary"
+if grep -q -e 'ignored null byte' -e 'Illegal byte sequence' "$work/nulreg.err"; then fail "null byte warning from letterbox"; fi
+ok "letterbox accepts a NUL header and does not warn"
+
 mkdir -p "$work/other"
 cat > "$work/other/rex" << EOF
 #!/bin/sh

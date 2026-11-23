@@ -231,19 +231,13 @@ Agent Letterbox for Rex is local-only and purpose-built for live Rex blocks.
 
 **If you are an agent,** read [the operating manual](skills/agent-letterbox/SKILL.md) first: doorbells, replies and the safety rules. ([More below](#learn-more).)
 
-**Copy this and give it to the agent you already work with.** The prompt is the whole ask:
+**Copy this and give it to the agent you already work with.** The prompt points at this page. The install rules below are the ask:
 
 ```text
-Install Agent Letterbox for Rex from the checkout this prompt came from. If you do not have that checkout, stop. This edition has no published remote. Do not clone another one. Do not change my Rex layout. Do not publish this tree. Do not start a Rex server.
-
-Open a terminal in that checkout. Set AGENT_LETTERBOX_REPO to it and run bash install.sh. If the letterbox launcher already exists and is not this checkout, stop. Do not replace it.
-
-Then run letterbox rex setup with the agent names planner, reviewer, builder, and researcher. Choose an empty directory for --dir and tell me the path after you have chosen it. Do not ask me for a directory. Setup writes only that directory. Do not install a skill or a launcher beyond what install.sh itself links.
-
-If a step would change a layout or a bridge that already exists, stop.
+Install Agent Letterbox for Rex from this checkout. If you do not have it, stop. This edition has no published remote. Do not clone another one. Read the operating manual and follow the Install section of this README. Do not change my Rex layout. Do not publish this tree. Do not start a Rex server.
 ```
 
-This edition has no published remote. `install.sh` clones whatever `AGENT_LETTERBOX_REPO` points at. Setup writes only the directory you pass. It does not install a skill or a launcher.
+This edition has no published remote. Do not clone another one. `install.sh` clones whatever `AGENT_LETTERBOX_REPO` points at. If the letterbox launcher already exists and is not this checkout, stop. Do not replace it. Choose an empty directory for `--dir` and tell the person the path. Do not ask them for a directory. Setup writes only that directory. It does not install a skill or a launcher beyond what `install.sh` itself links. If a step would change a layout or a bridge that already exists, stop.
 
 Open a terminal. Copy this block, paste it there, and press Enter.
 

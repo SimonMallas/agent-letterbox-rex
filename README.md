@@ -44,16 +44,18 @@ The doorbell is deliberately the smallest part: one contentless line that tells 
 agent to check its inbox. The letter is the message; the ring is only latency. **This edition
 rings it inside your Rex blocks.**
 
-- **Status:** active development. Versions are
-  whole numbers, starting at 1. History is in [CHANGELOG.md](CHANGELOG.md).
+- **Status:** public beta. Rex itself is invite-only and at preview versions.
+  This edition is new and has had days of use, not months. The files and the
+  words are public so a person can try them, and they can still change.
+  Versions are whole numbers, starting at 1. History is in [CHANGELOG.md](CHANGELOG.md).
 - **Bridge:** [agent-letter-bridge](https://github.com/SimonMallas/agent-letter-bridge) —
   the Telegram transport bridge, on PyPI.
 - **License:** MIT ([LICENSE](LICENSE)).
-- **Verify it yourself.** Open a terminal in that checkout. Copy this, paste it, and press Enter:
+- **Verify it yourself.** Open a terminal at the repository root. Copy this, paste it, and press Enter:
 
   ```bash
-  # from the repository root of a checkout (or ~/.local/share/agent-letterbox-rex after
-  # install.sh, once AGENT_LETTERBOX_REPO points at a git checkout):
+  # a clone of https://github.com/SimonMallas/agent-letterbox-rex,
+  # or ~/.local/share/agent-letterbox-rex after install.sh:
   letterbox --version && make test
   ```
 
@@ -89,7 +91,7 @@ One shared letter store and protocol, one edition per terminal. The memory recor
 - [tmux](https://github.com/SimonMallas/agent-letterbox-tmux)
 - [Herdr](https://github.com/SimonMallas/agent-letterbox-herdr)
 - [Zellij](https://github.com/SimonMallas/agent-letterbox-zellij)
-- **Rex** — this edition. It has no published remote yet.
+- **[Rex](https://github.com/SimonMallas/agent-letterbox-rex)** — this edition. It is a public beta.
 
 In every edition the doorbell is typed into the agent's session by default. Here, `LETTERBOX_REX_SUBMIT=0` turns typing off.
 
@@ -231,19 +233,20 @@ Agent Letterbox for Rex is local-only and purpose-built for live Rex blocks.
 
 **If you are an agent,** read [the operating manual](skills/agent-letterbox/SKILL.md) first: doorbells, replies and the safety rules. ([More below](#learn-more).)
 
-**Copy this and give it to the agent you already work with.** The prompt points at this page. The install rules below are the ask:
+This edition is a beta. Rex itself is invite-only and at preview versions. This edition is new and has had days of use, not months. A beta means the files and the words are public so a person can try them, and they can still change.
+
+**Copy this and give it to the agent you already work with.** The prompt points at the public page. The install rules below are the ask:
 
 ```text
-Install Agent Letterbox for Rex from this checkout. If you do not have it, stop. This edition has no published remote. Do not clone another one. Read the operating manual and follow the Install section of this README. Do not change my Rex layout. Do not publish this tree. Do not start a Rex server.
+Set up Agent Letterbox for Rex from https://github.com/SimonMallas/agent-letterbox-rex. Read the operating manual and follow the Install section of the README. Do not change my Rex layout. Do not start a Rex server.
 ```
 
-This edition has no published remote. Do not clone another one. `install.sh` clones whatever `AGENT_LETTERBOX_REPO` points at. If the letterbox launcher already exists and is not this checkout, stop. Do not replace it. Choose an empty directory for `--dir` and tell the person the path. Do not ask them for a directory. Setup writes only that directory. It does not install a skill or a launcher beyond what `install.sh` itself links. If a step would change a layout or a bridge that already exists, stop.
+`install.sh` clones `https://github.com/SimonMallas/agent-letterbox-rex.git` unless `AGENT_LETTERBOX_REPO` is set. If the letterbox launcher already exists and is not this checkout, stop. Do not replace it. Choose an empty directory for `--dir` and tell the person the path. Do not ask them for a directory. Setup writes only that directory. It does not install a skill or a launcher beyond what `install.sh` itself links. If a step would change a layout or a bridge that already exists, stop.
 
 Open a terminal. Copy this block, paste it there, and press Enter.
 
 ```bash
-export AGENT_LETTERBOX_REPO=/path/to/this/checkout
-bash install.sh
+curl -fsSL https://raw.githubusercontent.com/SimonMallas/agent-letterbox-rex/main/install.sh | bash
 export PATH="$HOME/.local/bin:$PATH"
 letterbox rex setup --agents planner,reviewer,builder,researcher --dir /path/to/box
 ```
@@ -319,7 +322,7 @@ Only `nack` or final `result` moves the original letter to `processed/`.
 
 `letterbox --version` shows the version you have, and [CHANGELOG.md](CHANGELOG.md) says what each version changed. Every agent runs the same `letterbox`, so one update covers the whole team. Your Letterbox, letters, agents and registrations are kept, and running agents use the new version from their next `letterbox` command.
 
-**Installed with `install.sh`:** run it again, with the same `AGENT_LETTERBOX_REPO`. It says which version you now have. Letters, agents and registrations are kept.
+**Installed with `install.sh`:** run it again. It uses the public repository unless `AGENT_LETTERBOX_REPO` is set, and then it uses that same checkout. It says which version you now have. Letters, agents and registrations are kept.
 
 **Installed from a git checkout:** run `git pull` in that checkout.
 

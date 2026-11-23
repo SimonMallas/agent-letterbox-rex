@@ -2,12 +2,11 @@
 # Agent Letterbox for Rex installer.
 set -euo pipefail
 
-repo="${AGENT_LETTERBOX_REPO:-}"
+repo="${AGENT_LETTERBOX_REPO:-https://github.com/SimonMallas/agent-letterbox-rex.git}"
 install_dir="${AGENT_LETTERBOX_INSTALL_DIR:-$HOME/.local/share/agent-letterbox-rex}"
 bin_dir="${AGENT_LETTERBOX_BIN_DIR:-$HOME/.local/bin}"
 
 fail() { printf 'agent-letterbox-rex installer: %s\n' "$*" >&2; exit 1; }
-[[ -n "$repo" ]] || fail 'This edition has no published remote. Set AGENT_LETTERBOX_REPO to a git checkout of this tree.'
 command -v git >/dev/null 2>&1 || fail 'Git is required. Install Git, then run this command again.'
 if [[ -e "$install_dir" && ! -d "$install_dir/.git" ]]; then fail "$install_dir exists but is not an Agent Letterbox Git checkout"; fi
 updated=false

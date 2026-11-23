@@ -45,7 +45,7 @@ rings it inside your Rex blocks.**
 - **Bridge:** [agent-letter-bridge](https://github.com/SimonMallas/agent-letter-bridge) —
   the Telegram transport bridge, on PyPI.
 - **License:** MIT ([LICENSE](LICENSE)).
-- **Verify it yourself:**
+- **Verify it yourself.** Open a terminal in that checkout. Copy this, paste it, and press Enter:
 
   ```bash
   # from the repository root of a checkout (or ~/.local/share/agent-letterbox-rex after
@@ -229,6 +229,8 @@ Agent Letterbox for Rex is local-only and purpose-built for live Rex blocks.
 
 This edition has no published remote. `install.sh` clones whatever `AGENT_LETTERBOX_REPO` points at. Setup writes only the directory you pass. It does not install a skill or a launcher.
 
+Open a terminal. Copy this block, paste it there, and press Enter.
+
 ```bash
 export AGENT_LETTERBOX_REPO=/path/to/this/checkout
 bash install.sh
@@ -236,7 +238,7 @@ export PATH="$HOME/.local/bin:$PATH"
 letterbox rex setup --agents planner,reviewer,builder,researcher --dir /path/to/box
 ```
 
-From a checkout you already have:
+From a checkout you already have, in that same terminal, paste this instead:
 
 ```bash
 chmod +x bin/letterbox adapters/*.sh tests/*.sh
@@ -244,7 +246,7 @@ export PATH="$PWD/bin:$PATH"
 letterbox rex setup --agents planner,reviewer,builder,researcher --dir /path/to/box
 ```
 
-Check:
+Check, in that same terminal. Paste this and press Enter:
 
 ```bash
 letterbox --version

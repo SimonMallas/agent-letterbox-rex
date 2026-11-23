@@ -6,6 +6,8 @@ You arrange the blocks. Letterbox does not create them. It registers the full bl
 
 ## One-time setup
 
+Open a terminal. Copy this block, paste it there, and press Enter.
+
 ```bash
 chmod +x bin/letterbox adapters/*.sh tests/*.sh
 export PATH="$PWD/bin:$PATH"

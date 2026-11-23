@@ -6,6 +6,7 @@ Versions are whole numbers. This edition starts at 1.
 
 ## Unreleased
 
+- The readme opens with a Quick install jump to the install section. That section still holds the copy-this prompt and the commands. The section stays where it is.
 - The copy-this prompt is a short pointer at this checkout. It stops when this checkout is absent, names no remote, and does not clone another tree. The install rules stay on this page: `install.sh` with `AGENT_LETTERBOX_REPO`, stop if the launcher is not this checkout, an empty directory for `--dir`, and stop if a layout or a bridge would change.
 
 ## 1 — 2026-11-20

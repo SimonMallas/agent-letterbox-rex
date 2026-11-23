@@ -1,3 +1,5 @@
+**[Quick install](#install)** — the copy-this prompt and the commands are in that section.
+
 ![A small orange-to-purple dinosaur hands a sealed letter to Bell, a white robot with envelope-shaped hands. The heading reads: Rex meets Agent Letterbox. A new edition for Superlogical's multiplexer.](assets/hero/rex-meets-letterbox.jpg)
 
 *Placeholder. The final picture replaces this file. This copy still shows a slide counter in the corner.*

@@ -143,7 +143,7 @@ the only filter the view takes; the scan is always box-wide.
   coordinating writers with readers; query does not provide that writer barrier.
 - Query itself never writes. The v0.5.0 writer separately adds `sent` and
   `send --supersedes <id>` with bounded reference validation. See the
-  [publication timestamp and supersession rules](../SPEC.md#publication-timestamps-and-supersession-v050).
+  [publication timestamp and supersession rules](../SPEC.md#frontmatter-fields).
   Supersession is an annotation, not authorization: no sender-ownership lookup
   is performed, and a reference does not rewrite its predecessor.
 

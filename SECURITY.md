@@ -52,11 +52,10 @@ See [ROADMAP.md](ROADMAP.md).
 
 Please **do not** open a public issue for security-sensitive reports.
 
-1. Contact the maintainer privately (repository owner on GitHub, or the contact listed on the public project page once published).
+1. Use GitHub private vulnerability reporting: https://github.com/SimonMallas/agent-letterbox-rex/security/advisories/new
+   That page is the private route once this repository is public and private reporting is turned on.
 2. Include: affected version/commit, reproduction steps, impact, and any suggested fix.
 3. Allow a reasonable window for a patch before public disclosure.
-
-If the project is still private, use the same private channel you already use with the maintainer.
 
 ## Safe defaults for integrators
 

@@ -6,6 +6,8 @@ Versions are whole numbers. This edition starts at 1.
 
 ## Unreleased
 
+- The fresh-install check sources the box env before it prints the directory, so an empty variable is not a failed setup. A vulnerability report goes to the repository's private advisory page. The query page links to the frontmatter section that states publication time and supersession.
+
 - This edition is a public beta. The copy-this prompt, the install commands, and `install.sh` use https://github.com/SimonMallas/agent-letterbox-rex. Rex itself is invite-only and at preview versions. This edition is new and has had days of use, not months. The files and the words are public so a person can try them, and they can still change.
 
 - The readme opens with a Quick install jump to the install section. That section still holds the copy-this prompt and the commands. The section stays where it is.

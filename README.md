@@ -259,9 +259,10 @@ export PATH="$PWD/bin:$PATH"
 letterbox rex setup --agents planner,reviewer,builder,researcher --dir /path/to/box
 ```
 
-Check, in that same terminal. Paste this and press Enter:
+Check, in that same terminal. Setup writes `env.sh` in the directory you chose. It does not set the variable in this terminal, so source that file first. Paste this and press Enter:
 
 ```bash
+source /path/to/box/env.sh
 letterbox --version
 rex version
 echo "$LETTERBOX_DIR"
